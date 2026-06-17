@@ -3,259 +3,551 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Painel de Pedidos — Festa Junina</title>
+  <title>Painel — Festa Junina</title>
   <style>
-    body { font-family: Arial, sans-serif; max-width: 900px; margin: 40px auto; padding: 0 16px; }
-    nav { text-align: center; margin-bottom: 24px; }
-    nav a { margin: 0 12px; text-decoration: none; color: #e67e22; font-weight: bold; }
+    @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700&display=swap');
 
-    /* ── Abas ── */
-    .abas { display: flex; gap: 8px; margin-bottom: 0; }
+    :root {
+      --vermelho: #C0392B;
+      --amarelo:  #F39C12;
+      --verde:    #27AE60;
+      --laranja:  #E67E22;
+      --creme:    #FDF6E3;
+      --escuro:   #2C1A0E;
+      --cinza:    #7F8C8D;
+      --radius:   10px;
+    }
+    * { box-sizing: border-box; margin:0; padding:0; }
+    body { font-family:'Nunito',Arial,sans-serif; background:#F4F4F4; color:var(--escuro); min-height:100vh; }
+
+    /* ── TELA DE LOGIN ── */
+    #tela-login {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg,var(--vermelho),var(--amarelo));
+    }
+    .login-card {
+      background: white;
+      border-radius: 16px;
+      padding: 40px 32px;
+      width: 100%;
+      max-width: 360px;
+      text-align: center;
+      box-shadow: 0 8px 30px rgba(0,0,0,.2);
+    }
+    .login-card h2 {
+      font-family:'Fredoka One',cursive;
+      font-size:1.6rem;
+      color:var(--escuro);
+      margin-bottom:6px;
+    }
+    .login-card p { font-size:14px; color:var(--cinza); margin-bottom:22px; }
+    .login-card input {
+      width:100%;
+      padding:11px 14px;
+      border:2px solid #ddd;
+      border-radius:var(--radius);
+      font-size:15px;
+      font-family:'Nunito',sans-serif;
+      margin-bottom:14px;
+      transition:border-color .2s;
+    }
+    .login-card input:focus { outline:none; border-color:var(--laranja); }
+    .login-card button {
+      width:100%;
+      padding:12px;
+      background:linear-gradient(135deg,var(--vermelho),var(--laranja));
+      color:white;
+      border:none;
+      border-radius:var(--radius);
+      font-family:'Fredoka One',cursive;
+      font-size:17px;
+      cursor:pointer;
+      transition:opacity .2s;
+    }
+    .login-card button:hover { opacity:.9; }
+    #login-erro {
+      display:none;
+      margin-top:12px;
+      padding:10px;
+      background:#f8d7da;
+      color:#721c24;
+      border-radius:8px;
+      font-size:14px;
+    }
+
+    /* ── PAINEL PRINCIPAL ── */
+    #painel { display:none; }
+
+    .bandeirinhas { width:100%; background:var(--vermelho); padding:8px 0 0; text-align:center; font-size:20px; letter-spacing:2px; }
+
+    header {
+      background:linear-gradient(135deg,var(--vermelho),var(--amarelo));
+      color:white; padding:20px 16px; text-align:center;
+    }
+    header h1 { font-family:'Fredoka One',cursive; font-size:1.8rem; text-shadow:2px 2px 4px rgba(0,0,0,.3); }
+
+    nav {
+      background:var(--escuro);
+      display:flex; justify-content:center; gap:4px; padding:8px;
+    }
+    nav a {
+      color:var(--amarelo); text-decoration:none; font-weight:700;
+      font-size:14px; padding:6px 16px; border-radius:20px; transition:background .2s;
+    }
+    nav a:hover { background:rgba(255,255,255,.15); }
+
+    .main-wrap { max-width:960px; margin:0 auto; padding:24px 16px 40px; }
+
+    /* ── CONTROLES OPERADOR ── */
+    .operador-bar {
+      background:white;
+      border:2px solid var(--amarelo);
+      border-radius:var(--radius);
+      padding:14px 18px;
+      margin-bottom:20px;
+      display:flex;
+      flex-wrap:wrap;
+      align-items:center;
+      gap:12px;
+    }
+    .operador-bar span { font-weight:700; font-size:14px; color:var(--escuro); flex:1; min-width:140px; }
+    .btn-toggle {
+      padding:8px 20px;
+      border:none;
+      border-radius:20px;
+      font-family:'Nunito',sans-serif;
+      font-weight:700;
+      font-size:14px;
+      cursor:pointer;
+      transition:all .2s;
+    }
+    .btn-toggle.ativar   { background:var(--verde);   color:white; }
+    .btn-toggle.desativar{ background:var(--vermelho); color:white; }
+    .btn-toggle:hover    { opacity:.85; }
+    #status-pv-badge {
+      display:inline-block;
+      padding:3px 12px;
+      border-radius:12px;
+      font-size:12px;
+      font-weight:700;
+    }
+    .badge-ativa    { background:#d4edda; color:#155724; }
+    .badge-inativa  { background:#f8d7da; color:#721c24; }
+
+    /* ── BOTÃO ATUALIZAR ── */
+    #btn-atualizar {
+      margin-bottom:16px;
+      padding:8px 18px;
+      background:var(--escuro);
+      color:white;
+      border:none;
+      border-radius:20px;
+      font-family:'Nunito',sans-serif;
+      font-weight:700;
+      cursor:pointer;
+      font-size:14px;
+      transition:opacity .2s;
+    }
+    #btn-atualizar:hover { opacity:.8; }
+
+    /* ── ABAS ── */
+    .abas { display:flex; gap:0; margin-bottom:0; }
     .aba-btn {
-      padding: 10px 24px; cursor: pointer; border: 2px solid #ccc;
-      background: #f5f5f5; font-size: 15px; border-bottom: none;
+      padding:10px 22px;
+      cursor:pointer;
+      border:2px solid #ccc;
+      background:#f5f5f5;
+      font-size:14px;
+      font-family:'Nunito',sans-serif;
+      font-weight:700;
+      border-bottom:none;
+      transition:all .2s;
     }
-    .aba-btn.ativa { background: white; border-color: #e67e22; color: #e67e22; font-weight: bold; }
-    .aba-conteudo { border: 2px solid #e67e22; padding: 20px; display: none; }
-    .aba-conteudo.ativa { display: block; }
+    .aba-btn.ativa { background:white; border-color:var(--laranja); color:var(--laranja); }
+    .aba-conteudo { border:2px solid var(--laranja); padding:20px; display:none; background:white; border-radius:0 var(--radius) var(--radius) var(--radius); }
+    .aba-conteudo.ativa { display:block; }
 
-    /* ── Card de pedido (Aba Produção) ── */
+    /* ── SEÇÕES DENTRO DAS ABAS ── */
+    .secao-titulo {
+      font-family:'Fredoka One',cursive;
+      font-size:1.1rem;
+      color:var(--escuro);
+      padding:10px 0 8px;
+      border-bottom:2px solid #eee;
+      margin:16px 0 12px;
+      display:flex;
+      align-items:center;
+      gap:8px;
+    }
+    .secao-titulo:first-child { margin-top:0; }
+    .secao-count {
+      background:var(--laranja);
+      color:white;
+      border-radius:12px;
+      padding:1px 10px;
+      font-size:13px;
+    }
+
+    /* ── CARD DE PEDIDO ── */
     .pedido-card {
-      border: 1px solid #ddd; border-radius: 6px; padding: 16px;
-      margin-bottom: 16px; background: white;
+      border:1px solid #ddd;
+      border-radius:8px;
+      padding:14px 16px;
+      margin-bottom:12px;
+      background:white;
+      box-shadow:0 1px 4px rgba(0,0,0,.06);
     }
-    .pedido-card.finalizado { opacity: 0.5; border-color: #aaa; }
-    .pedido-card h3 { margin: 0 0 4px; font-size: 18px; }
-    .pedido-card .ticket { color: #e67e22; font-weight: bold; font-size: 15px; }
-    .pedido-card .email { color: #666; font-size: 13px; }
-    .itens-check { margin: 10px 0; }
-    .itens-check label { display: flex; align-items: center; gap: 8px; margin: 6px 0; cursor: pointer; }
-    .itens-check input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; }
+    .pedido-card.finalizado { opacity:.5; border-color:#aaa; }
+    .pedido-card.tipo-pv    { border-left:4px solid var(--amarelo); }
+    .pedido-card h3         { margin:0 0 3px; font-size:16px; }
+    .ticket   { color:var(--laranja); font-weight:700; font-size:14px; }
+    .ticket.pv-ticket { color:#856404; }
+    .email    { color:#666; font-size:13px; }
+    .total-tag { display:inline-block; background:#d4edda; color:#155724; border-radius:10px; padding:1px 10px; font-size:12px; font-weight:700; margin-left:6px; }
+    .obs-tag  { background:#FFF8DC; border:1px solid var(--amarelo); border-radius:6px; padding:5px 10px; font-size:13px; color:#555; margin-top:8px; }
+
+    .itens-check      { margin:10px 0; }
+    .itens-check label { display:flex; align-items:center; gap:8px; margin:5px 0; cursor:pointer; }
+    .itens-check input[type="checkbox"] { width:18px; height:18px; cursor:pointer; accent-color:var(--verde); }
+
     .btn-finalizar {
-      margin-top: 10px; padding: 8px 20px; background: #27ae60;
-      color: white; border: none; cursor: pointer; font-size: 14px; border-radius: 4px;
+      margin-top:10px;
+      padding:7px 18px;
+      background:var(--verde);
+      color:white;
+      border:none;
+      cursor:pointer;
+      font-size:13px;
+      border-radius:6px;
+      font-family:'Nunito',sans-serif;
+      font-weight:700;
+      transition:opacity .2s;
     }
-    .btn-finalizar:disabled { background: #aaa; cursor: default; }
+    .btn-finalizar:hover    { opacity:.85; }
+    .btn-finalizar:disabled { background:#aaa; cursor:default; }
 
-    /* ── Lista da Pré-Venda ── */
-    .prevenda-item {
-      border-bottom: 1px solid #eee; padding: 14px 0;
-    }
-    .prevenda-item:last-child { border-bottom: none; }
-    .prevenda-nome { font-size: 22px; font-weight: bold; }
-    .prevenda-ticket { color: #e67e22; font-size: 16px; font-weight: bold; }
-    .prevenda-email { color: #555; font-size: 14px; }
-    .prevenda-itens { color: #333; font-size: 14px; margin-top: 4px; }
-    .status-badge {
-      display: inline-block; padding: 2px 10px; border-radius: 12px;
-      font-size: 12px; font-weight: bold; margin-left: 8px;
-    }
-    .status-pendente { background: #fff3cd; color: #856404; }
-    .status-finalizado { background: #d4edda; color: #155724; }
+    /* ── PRÉ-VENDA LISTA ── */
+    .prevenda-item { border-bottom:1px solid #eee; padding:14px 0; }
+    .prevenda-item:last-child { border-bottom:none; }
+    .prevenda-nome   { font-size:20px; font-weight:700; }
+    .prevenda-ticket { font-size:15px; font-weight:700; }
+    .prevenda-email  { color:#555; font-size:13px; }
+    .prevenda-itens  { color:#333; font-size:14px; margin-top:4px; }
+    .status-badge    { display:inline-block; padding:2px 10px; border-radius:12px; font-size:12px; font-weight:700; margin-left:6px; }
+    .status-pendente   { background:#fff3cd; color:#856404; }
+    .status-finalizado { background:#d4edda; color:#155724; }
 
-    #btn-atualizar { margin-bottom: 16px; padding: 8px 16px; cursor: pointer; }
+    @media(max-width:480px) {
+      .aba-btn { padding:9px 12px; font-size:13px; }
+      .operador-bar { flex-direction:column; align-items:flex-start; }
+    }
   </style>
 </head>
 <body>
 
+<!-- ══════════════════════════════════ TELA DE LOGIN ══════════════════════════ -->
+<div id="tela-login">
+  <div class="login-card">
+    <div style="font-size:3rem;margin-bottom:8px;">🎪</div>
+    <h2>Painel do Operador</h2>
+    <p>Área restrita da barraca.<br>Insira a senha para continuar.</p>
+    <input type="password" id="input-senha" placeholder="Senha do operador"
+           onkeydown="if(event.key==='Enter')fazerLogin()" />
+    <button onclick="fazerLogin()">🔑 Entrar</button>
+    <div id="login-erro">Senha incorreta. Tente novamente.</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════ PAINEL PRINCIPAL ══════════════════════ -->
+<div id="painel">
+
+  <div class="bandeirinhas">🎏🏮🎏🏮🎏🏮🎏🏮🎏🏮🎏🏮🎏🏮🎏🏮🎏</div>
+
+  <header>
+    <h1>📋 Painel de Pedidos</h1>
+  </header>
+
   <nav>
     <a href="/">🎟️ Fazer Pedido</a>
-    <a href="/painel.html">📋 Painel de Pedidos</a>
+    <a href="/painel.html">📋 Painel</a>
   </nav>
 
-  <h1>📋 Painel de Pedidos</h1>
-  <button id="btn-atualizar" onclick="carregarPedidos()">🔄 Atualizar</button>
+  <div class="main-wrap">
 
-  <!-- ── ABAS ───────────────────────────────────────────────────────────── -->
-  <!-- Duas abas: "Produção" (para quem faz os pedidos) e "Pré-Venda" (lista geral) -->
-  <div class="abas">
-    <button class="aba-btn ativa" onclick="trocarAba('producao')">🍗 Produção</button>
-    <button class="aba-btn" onclick="trocarAba('prevenda')">📄 Pré-Venda</button>
-  </div>
+    <!-- Barra do operador -->
+    <div class="operador-bar">
+      <span>🌭 Pré-venda Hot Dog: <span id="status-pv-badge">—</span></span>
+      <button id="btn-toggle-pv" class="btn-toggle ativar" onclick="togglePrevenda()">—</button>
+      <button id="btn-atualizar" onclick="carregarPedidos()">🔄 Atualizar</button>
+    </div>
 
-  <!-- Aba 1: Produção — mostra cards com checkboxes por item -->
-  <div id="aba-producao" class="aba-conteudo ativa">
-    <div id="lista-producao">Carregando pedidos...</div>
-  </div>
+    <!-- Abas -->
+    <div class="abas">
+      <button class="aba-btn ativa" onclick="trocarAba('producao')">🍗 Produção</button>
+      <button class="aba-btn"       onclick="trocarAba('historico')">📄 Histórico</button>
+    </div>
 
-  <!-- Aba 2: Pré-Venda — lista completa com nome grande, email e ticket -->
-  <div id="aba-prevenda" class="aba-conteudo">
-    <div id="lista-prevenda">Carregando...</div>
-  </div>
+    <!-- ABA PRODUÇÃO -->
+    <div id="aba-producao" class="aba-conteudo ativa">
+
+      <!-- Seção pedidos normais -->
+      <div class="secao-titulo">
+        🍗 Pedidos Normais
+        <span class="secao-count" id="count-normais">0</span>
+      </div>
+      <div id="lista-normais">Carregando...</div>
+
+      <!-- Seção pré-vendas -->
+      <div class="secao-titulo" style="margin-top:28px;">
+        🌭 Pré-Vendas Hot Dog
+        <span class="secao-count" id="count-pv">0</span>
+      </div>
+      <div id="lista-pv-prod">Carregando...</div>
+
+    </div>
+
+    <!-- ABA HISTÓRICO -->
+    <div id="aba-historico" class="aba-conteudo">
+
+      <div class="secao-titulo">🍗 Pedidos Normais</div>
+      <div id="hist-normais">Carregando...</div>
+
+      <div class="secao-titulo" style="margin-top:28px;">🌭 Pré-Vendas Hot Dog</div>
+      <div id="hist-pv">Carregando...</div>
+
+    </div>
+
+  </div><!-- /main-wrap -->
+</div><!-- /painel -->
 
 
-  <script>
-    // Estado local: guarda os pedidos carregados da API
-    let pedidos = [];
+<script>
+  let pedidos = [];
+  let senhaOperador = "";
+  let prevendaAtiva = true;
 
-    // ── trocarAba ──────────────────────────────────────────────────────────
-    // Alterna entre as abas sem recarregar a página.
-    // Remove a classe 'ativa' de tudo e adiciona na aba clicada.
-    function trocarAba(nome) {
-      document.querySelectorAll(".aba-btn").forEach((b) => b.classList.remove("ativa"));
-      document.querySelectorAll(".aba-conteudo").forEach((c) => c.classList.remove("ativa"));
+  // ── LOGIN ──────────────────────────────────────────────────────────────────
+  async function fazerLogin() {
+    const senha = document.getElementById("input-senha").value;
+    if (!senha) return;
 
-      // O botão clicado é o que tem o onclick correspondente ao nome
-      const botoes = document.querySelectorAll(".aba-btn");
-      const nomes = ["producao", "prevenda"];
-      botoes[nomes.indexOf(nome)].classList.add("ativa");
-
-      document.getElementById("aba-" + nome).classList.add("ativa");
-    }
-
-    // ── carregarPedidos ────────────────────────────────────────────────────
-    // Chama GET /api/pedidos, recebe a lista JSON e renderiza as duas abas.
-    async function carregarPedidos() {
-      try {
-        const resposta = await fetch("/api/pedidos");
-        pedidos = await resposta.json();
-        renderizarProducao();
-        renderizarPreVenda();
-      } catch (err) {
-        document.getElementById("lista-producao").innerHTML = "Erro ao carregar pedidos.";
-        console.error(err);
-      }
-    }
-
-    // ── renderizarProducao ─────────────────────────────────────────────────
-    // Cria um card para cada pedido com checkboxes por item e botão "Finalizar".
-    function renderizarProducao() {
-      const div = document.getElementById("lista-producao");
-
-      // Mostra pendentes primeiro, depois finalizados
-      const ordenados = [...pedidos].sort((a, b) => {
-        if (a.status === b.status) return 0;
-        return a.status === "pendente" ? -1 : 1;
+    try {
+      const r = await fetch("/api/operador/login", {
+        method:"POST", headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({ senha }),
       });
-
-      if (ordenados.length === 0) {
-        div.innerHTML = "<p>Nenhum pedido ainda.</p>";
-        return;
+      const d = await r.json();
+      if (d.ok) {
+        senhaOperador = senha;
+        document.getElementById("tela-login").style.display = "none";
+        document.getElementById("painel").style.display = "block";
+        carregarPedidos();
+        carregarStatusPv();
+        // Auto-atualiza a cada 30s
+        setInterval(carregarPedidos, 30000);
+      } else {
+        document.getElementById("login-erro").style.display = "block";
       }
+    } catch(e) {
+      document.getElementById("login-erro").style.display = "block";
+    }
+  }
 
-      div.innerHTML = ordenados.map((pedido) => {
-        // Monta as checkboxes de cada item do pedido
-        // Cada checkbox chama marcarItem() ao ser clicada
-        const itensHTML = pedido.itens.map((item) => {
-          const feito = pedido.itensFinalizados.includes(item);
-          return `
-            <label>
-              <input 
-                type="checkbox" 
-                ${feito ? "checked" : ""}
-                onchange="marcarItem('${pedido.ticketNumero}', '${item.replace(/'/g, "\\'")}', this)"
-              />
-              <span style="${feito ? "text-decoration:line-through;color:#aaa" : ""}">${item}</span>
-            </label>
-          `;
-        }).join("");
+  // ── STATUS PRÉ-VENDA ──────────────────────────────────────────────────────
+  async function carregarStatusPv() {
+    try {
+      const r = await fetch("/api/prevenda/status");
+      const { ativa } = await r.json();
+      prevendaAtiva = ativa;
+      atualizarBadgePv();
+    } catch(_) {}
+  }
 
-        const finalizado = pedido.status === "finalizado";
+  function atualizarBadgePv() {
+    const badge = document.getElementById("status-pv-badge");
+    const btn   = document.getElementById("btn-toggle-pv");
+    if (prevendaAtiva) {
+      badge.textContent = "Aberta";
+      badge.className   = "badge-ativa";
+      btn.textContent   = "🔴 Desativar pré-venda";
+      btn.className     = "btn-toggle desativar";
+    } else {
+      badge.textContent = "Fechada";
+      badge.className   = "badge-inativa";
+      btn.textContent   = "🟢 Ativar pré-venda";
+      btn.className     = "btn-toggle ativar";
+    }
+  }
 
+  async function togglePrevenda() {
+    const novoEstado = !prevendaAtiva;
+    const acao = novoEstado ? "ATIVAR" : "DESATIVAR";
+    if (!confirm(`Confirma ${acao} a pré-venda de hot dog?`)) return;
+    try {
+      const r = await fetch("/api/operador/prevenda", {
+        method:"PATCH", headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({ senha: senhaOperador, ativa: novoEstado }),
+      });
+      const d = await r.json();
+      if (r.ok) {
+        prevendaAtiva = novoEstado;
+        atualizarBadgePv();
+      } else {
+        alert("Erro: " + (d.erro || "Tente novamente."));
+      }
+    } catch(e) {
+      alert("Erro de conexão.");
+    }
+  }
+
+  // ── ABAS ──────────────────────────────────────────────────────────────────
+  function trocarAba(nome) {
+    document.querySelectorAll(".aba-btn").forEach(b => b.classList.remove("ativa"));
+    document.querySelectorAll(".aba-conteudo").forEach(c => c.classList.remove("ativa"));
+    const nomes = ["producao","historico"];
+    document.querySelectorAll(".aba-btn")[nomes.indexOf(nome)].classList.add("ativa");
+    document.getElementById("aba-" + nome).classList.add("ativa");
+  }
+
+  // ── CARREGAR PEDIDOS ──────────────────────────────────────────────────────
+  async function carregarPedidos() {
+    try {
+      const r = await fetch("/api/pedidos");
+      pedidos = await r.json();
+      renderizarProducao();
+      renderizarHistorico();
+    } catch(e) {
+      document.getElementById("lista-normais").innerHTML = "Erro ao carregar pedidos.";
+    }
+  }
+
+  // ── PRODUÇÃO ──────────────────────────────────────────────────────────────
+  function renderizarProducao() {
+    const pendentes = pedidos.filter(p => p.status === "pendente");
+
+    const normais = pendentes.filter(p => p.tipo !== "prevenda_hotdog");
+    const pvs     = pendentes.filter(p => p.tipo === "prevenda_hotdog");
+
+    document.getElementById("count-normais").textContent = normais.length;
+    document.getElementById("count-pv").textContent      = pvs.length;
+
+    renderCards("lista-normais", normais);
+    renderCards("lista-pv-prod", pvs);
+  }
+
+  function renderCards(containerId, lista) {
+    const div = document.getElementById(containerId);
+    if (lista.length === 0) {
+      div.innerHTML = "<p style='color:#aaa;font-size:14px;padding:8px 0;'>Nenhum pendente.</p>";
+      return;
+    }
+    div.innerHTML = lista.map(pedido => {
+      const isPv = pedido.tipo === "prevenda_hotdog";
+      const itensBrutos = isPv ? (pedido.itens || []) : pedido.itens;
+
+      // Filtra obs da lista de itens para exibição separada
+      const itensExib  = itensBrutos.filter(i => !i.startsWith("OBS:"));
+      const obsItem    = itensBrutos.find(i => i.startsWith("OBS:"));
+
+      const itensHTML = itensExib.map(item => {
+        const feito = pedido.itensFinalizados && pedido.itensFinalizados.includes(item);
         return `
-          <div class="pedido-card ${finalizado ? "finalizado" : ""}" id="card-${pedido.ticketNumero}">
-            <h3>${pedido.nome}</h3>
-            <div class="ticket">${pedido.ticketNumero}</div>
-            <div class="email">${pedido.email}</div>
-            <div class="itens-check">${itensHTML}</div>
-            <button 
-              class="btn-finalizar" 
-              onclick="finalizarPedido('${pedido.ticketNumero}')"
-              ${finalizado ? "disabled" : ""}
-            >
-              ${finalizado ? "✅ Finalizado" : "Finalizar Pedido"}
-            </button>
-          </div>
-        `;
+          <label>
+            <input type="checkbox" ${feito?"checked":""}
+              onchange="marcarItem('${pedido.ticketNumero}','${item.replace(/'/g,"\\'")}',this)" />
+            <span style="${feito?"text-decoration:line-through;color:#aaa":""}">${item}</span>
+          </label>`;
       }).join("");
-    }
 
-    // ── renderizarPreVenda ─────────────────────────────────────────────────
-    // Lista todos os pedidos da pré-venda com nome grande, email e número do ticket.
-    function renderizarPreVenda() {
-      const div = document.getElementById("lista-prevenda");
+      const totalTag = isPv && pedido.total != null
+        ? `<span class="total-tag">R$ ${Number(pedido.total).toFixed(2).replace(".",",")}</span>` : "";
 
-      if (pedidos.length === 0) {
-        div.innerHTML = "<p>Nenhum pedido registrado.</p>";
-        return;
+      const obsHTML = obsItem
+        ? `<div class="obs-tag">📝 ${obsItem.replace("OBS: ","")}</div>` : "";
+
+      return `
+        <div class="pedido-card ${isPv?"tipo-pv":""}" id="card-${pedido.ticketNumero}">
+          <h3>${pedido.nome} ${totalTag}</h3>
+          <div class="ticket ${isPv?"pv-ticket":""}">${pedido.ticketNumero}</div>
+          <div class="email">${pedido.email}</div>
+          <div class="itens-check">${itensHTML}</div>
+          ${obsHTML}
+          <button class="btn-finalizar" onclick="finalizarPedido('${pedido.ticketNumero}')">
+            Finalizar Pedido
+          </button>
+        </div>`;
+    }).join("");
+  }
+
+  // ── HISTÓRICO ─────────────────────────────────────────────────────────────
+  function renderizarHistorico() {
+    const normais = pedidos.filter(p => p.tipo !== "prevenda_hotdog");
+    const pvs     = pedidos.filter(p => p.tipo === "prevenda_hotdog");
+
+    document.getElementById("hist-normais").innerHTML = renderHistLista(normais);
+    document.getElementById("hist-pv").innerHTML      = renderHistLista(pvs);
+  }
+
+  function renderHistLista(lista) {
+    if (lista.length === 0) return "<p style='color:#aaa;font-size:14px;padding:8px 0;'>Nenhum registro.</p>";
+
+    return lista.map(p => {
+      const badge = p.status === "finalizado"
+        ? `<span class="status-badge status-finalizado">Finalizado</span>`
+        : `<span class="status-badge status-pendente">Pendente</span>`;
+
+      const isPv = p.tipo === "prevenda_hotdog";
+      const itensBrutos = isPv ? (p.itens || []) : p.itens;
+      const itensExib   = itensBrutos.filter(i => !i.startsWith("OBS:"));
+      const obsItem     = itensBrutos.find(i => i.startsWith("OBS:"));
+      const totalTag    = isPv && p.total != null
+        ? ` · <strong>R$ ${Number(p.total).toFixed(2).replace(".",",")}</strong>` : "";
+
+      return `
+        <div class="prevenda-item">
+          <div class="prevenda-nome">${p.nome} ${badge}</div>
+          <div class="prevenda-ticket ${isPv?"pv-ticket":""}">${p.ticketNumero}${totalTag}</div>
+          <div class="prevenda-email">${p.email}</div>
+          <div class="prevenda-itens">🍽️ ${itensExib.join(", ")}</div>
+          ${obsItem ? `<div class="obs-tag" style="margin-top:6px;">📝 ${obsItem.replace("OBS: ","")}</div>` : ""}
+        </div>`;
+    }).join("");
+  }
+
+  // ── MARCAR ITEM ───────────────────────────────────────────────────────────
+  async function marcarItem(ticket, item, cb) {
+    if (!cb.checked) { cb.checked = true; return; }
+    try {
+      const r = await fetch(`/api/pedidos/${ticket}/item`, {
+        method:"PATCH", headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({ item }),
+      });
+      const d = await r.json();
+      if (r.ok) {
+        const idx = pedidos.findIndex(p => p.ticketNumero === ticket);
+        if (idx !== -1) pedidos[idx] = d.pedido;
+        renderizarProducao();
       }
+    } catch(e) { cb.checked = false; }
+  }
 
-      div.innerHTML = pedidos.map((pedido) => {
-        const badge = pedido.status === "finalizado"
-          ? `<span class="status-badge status-finalizado">Finalizado</span>`
-          : `<span class="status-badge status-pendente">Pendente</span>`;
-
-        const itensTexto = pedido.itens.join(", ");
-
-        return `
-          <div class="prevenda-item">
-            <div class="prevenda-nome">${pedido.nome} ${badge}</div>
-            <div class="prevenda-ticket">${pedido.ticketNumero}</div>
-            <div class="prevenda-email">${pedido.email}</div>
-            <div class="prevenda-itens">🍽️ ${itensTexto}</div>
-          </div>
-        `;
-      }).join("");
-    }
-
-    // ── marcarItem ────────────────────────────────────────────────────────
-    // Chamada quando o usuário clica em uma checkbox de item.
-    // Envia PATCH /api/pedidos/:ticket/item com o nome do item.
-    // Nota: por simplicidade, só marcamos como feito (não desmarcamos).
-    async function marcarItem(ticket, item, checkbox) {
-      if (!checkbox.checked) {
-        // Opcional: permitir desmarcar depois. Por ora, ignora.
-        checkbox.checked = true;
-        return;
+  // ── FINALIZAR PEDIDO ──────────────────────────────────────────────────────
+  async function finalizarPedido(ticket) {
+    if (!confirm(`Finalizar o pedido ${ticket}?`)) return;
+    try {
+      const r = await fetch(`/api/pedidos/${ticket}/finalizar`, { method:"PATCH" });
+      const d = await r.json();
+      if (r.ok) {
+        const idx = pedidos.findIndex(p => p.ticketNumero === ticket);
+        if (idx !== -1) pedidos[idx] = d.pedido;
+        renderizarProducao();
+        renderizarHistorico();
       }
-
-      try {
-        const resposta = await fetch(`/api/pedidos/${ticket}/item`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ item }),
-        });
-
-        const dados = await resposta.json();
-
-        if (resposta.ok) {
-          // Atualiza o pedido na lista local sem precisar recarregar tudo
-          const idx = pedidos.findIndex((p) => p.ticketNumero === ticket);
-          if (idx !== -1) pedidos[idx] = dados.pedido;
-          renderizarProducao();
-        }
-      } catch (err) {
-        console.error("Erro ao marcar item:", err);
-        checkbox.checked = false;
-      }
-    }
-
-    // ── finalizarPedido ───────────────────────────────────────────────────
-    // Chama PATCH /api/pedidos/:ticket/finalizar para marcar o pedido inteiro como feito.
-    async function finalizarPedido(ticket) {
-      if (!confirm(`Finalizar o pedido ${ticket}?`)) return;
-
-      try {
-        const resposta = await fetch(`/api/pedidos/${ticket}/finalizar`, {
-          method: "PATCH",
-        });
-
-        const dados = await resposta.json();
-
-        if (resposta.ok) {
-          const idx = pedidos.findIndex((p) => p.ticketNumero === ticket);
-          if (idx !== -1) pedidos[idx] = dados.pedido;
-          renderizarProducao();
-          renderizarPreVenda();
-        }
-      } catch (err) {
-        console.error("Erro ao finalizar pedido:", err);
-      }
-    }
-
-    // Carrega os pedidos assim que a página abre
-    carregarPedidos();
-  </script>
-
+    } catch(e) { console.error(e); }
+  }
+</script>
 </body>
 </html>
