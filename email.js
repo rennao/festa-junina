@@ -1,45 +1,18 @@
-// email.js — Responsável por montar e enviar o e-mail do ticket ao comprador
-// Usa Nodemailer com Gmail. Para funcionar, você precisa:
-// 1. Ativar "Senhas de app" na conta Google (não usa a senha normal)
-// 2. Preencher EMAIL_USER e EMAIL_PASS no arquivo .env
+// email.js — Responsável por montar e enviar o e-mail do ticket ao comprador usando RESEND
+const { Resend } = require("resend");
 
-const nodemailer = require("nodemailer");
+// Nova variável de ambiente para o Resend
+const RESEND_API_KEY = process.env.RESEND_API_KEY;
 
-// ✅ Variáveis centralizadas — evita inconsistência entre auth e from
-// ⚠️ NÃO deixe credenciais reais aqui no código. Configure EMAIL_USER e
-// EMAIL_PASS nas variáveis de ambiente do Railway (aba "Variables").
-const EMAIL_USER = process.env.EMAIL_USER;
-const EMAIL_PASS = process.env.EMAIL_PASS;
-
-if (!EMAIL_USER || !EMAIL_PASS) {
-  console.warn("⚠️ EMAIL_USER ou EMAIL_PASS não configurados nas variáveis de ambiente!");
+if (!RESEND_API_KEY) {
+  console.warn("⚠️ RESEND_API_KEY não configurada nas variáveis de ambiente!");
 }
 
-// Transporter: é a "conexão" com o servidor de e-mail.
-// ✅ Timeouts adicionados: sem isso, se o Railway/Gmail travar a conexão,
-// o Nodemailer fica esperando por minutos e o pedido do usuário "trava"
-// esperando a resposta do servidor (mesmo que o pedido já tenha sido salvo).
-// ✅ Porta forçada para 587 (STARTTLS) ao invés de deixar o "service: gmail"
-// escolher automaticamente (geralmente cai na 465/SSL). Alguns hosts cloud
-// (como o Railway) bloqueiam ou têm instabilidade numa porta específica.
-function criarTransporter() {
-  return nodemailer.createTransport({
-    host: "smtp.gmail.com",
-    port: 465,
-    secure: true, // false = usa STARTTLS (upgrade da conexão depois do handshake)
-    auth: {
-      user: EMAIL_USER,
-      pass: EMAIL_PASS,
-    },
-    connectionTimeout: 10000, // 10s para conectar ao servidor do Gmail
-    greetingTimeout: 10000,   // 10s para o "handshake" inicial
-    socketTimeout: 15000,     // 15s de inatividade no socket antes de desistir
-  });
-}
+// Inicializa o cliente do Resend
+const resend = new Resend(RESEND_API_KEY);
 
-// Monta o HTML bonito do ticket que será enviado por e-mail
+// Mantém exatamente a sua lógica original de construção do HTML
 function montarHTMLTicket(pedido) {
-  // ✅ Garante que itens é sempre um array, mesmo que venha como objeto {itens, total}
   let itensArray = pedido.itens;
   if (!Array.isArray(itensArray)) {
     try {
@@ -54,7 +27,6 @@ function montarHTMLTicket(pedido) {
     .map((item) => `<li style="padding: 4px 0;">${item}</li>`)
     .join("");
 
-  // Linha de total só aparece se o pedido tiver valor (pré-venda de hot dog)
   const linhaTotal =
     pedido.total != null
       ? `<p style="font-size: 16px;"><strong>Total:</strong> <span style="color: #e67e22;">R$ ${Number(pedido.total).toFixed(2)}</span></p>`
@@ -85,26 +57,29 @@ function montarHTMLTicket(pedido) {
   `;
 }
 
-// Função principal: envia o e-mail do ticket para o comprador
+// Função principal adaptada para a API do Resend
 async function enviarTicket(pedido) {
   if (!pedido.email || !pedido.ticketNumero || !pedido.itens) {
     console.error("❌ Dados do pedido incompletos para envio de e-mail.");
     return { sucesso: false, erro: "Dados do pedido incompletos." };
   }
 
-  const transporter = criarTransporter();
-
-  const opcoes = {
-    from: `"Festa Junina 🎪" <${EMAIL_USER}>`,
-    to: pedido.email,
-    subject: `Seu ticket ${pedido.ticketNumero} — Festa Junina`,
-    html: montarHTMLTicket(pedido),
-  };
-
   try {
-    const info = await transporter.sendMail(opcoes);
-    console.log(`✅ E-mail enviado para ${pedido.email} — ID: ${info.messageId}`);
-    return { sucesso: true, messageId: info.messageId };
+    // Importante: A conta gratuita do Resend exige enviar a partir de 'onboarding@resend.dev'
+    const { data, error } = await resend.emails.send({
+      from: "Festa Junina 🎪 <onboarding@resend.dev>",
+      to: [pedido.email],
+      subject: `Seu ticket ${pedido.ticketNumero} — Festa Junina`,
+      html: montarHTMLTicket(pedido),
+    });
+
+    if (error) {
+      console.error("❌ Erro retornado pelo Resend:", error.message || error);
+      return { sucesso: false, erro: error.message };
+    }
+
+    console.log(`✅ E-mail enviado para ${pedido.email} — ID: ${data.id}`);
+    return { sucesso: true, messageId: data.id };
   } catch (erro) {
     console.error("❌ Erro ao enviar e-mail:", erro.message);
     return { sucesso: false, erro: erro.message };
