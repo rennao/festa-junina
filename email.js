@@ -6,10 +6,19 @@
 const nodemailer = require("nodemailer");
 
 // ✅ Variáveis centralizadas — evita inconsistência entre auth e from
-const EMAIL_USER = process.env.EMAIL_USER || "rennercand@gmail.com";
-const EMAIL_PASS = process.env.EMAIL_PASS || "gobmfhuzbgeqcgug";
+// ⚠️ NÃO deixe credenciais reais aqui no código. Configure EMAIL_USER e
+// EMAIL_PASS nas variáveis de ambiente do Railway (aba "Variables").
+const EMAIL_USER = process.env.EMAIL_USER;
+const EMAIL_PASS = process.env.EMAIL_PASS;
+
+if (!EMAIL_USER || !EMAIL_PASS) {
+  console.warn("⚠️ EMAIL_USER ou EMAIL_PASS não configurados nas variáveis de ambiente!");
+}
 
 // Transporter: é a "conexão" com o servidor de e-mail.
+// ✅ Timeouts adicionados: sem isso, se o Railway/Gmail travar a conexão,
+// o Nodemailer fica esperando por minutos e o pedido do usuário "trava"
+// esperando a resposta do servidor (mesmo que o pedido já tenha sido salvo).
 function criarTransporter() {
   return nodemailer.createTransport({
     service: "gmail",
@@ -17,6 +26,9 @@ function criarTransporter() {
       user: EMAIL_USER,
       pass: EMAIL_PASS,
     },
+    connectionTimeout: 10000, // 10s para conectar ao servidor do Gmail
+    greetingTimeout: 10000,   // 10s para o "handshake" inicial
+    socketTimeout: 15000,     // 15s de inatividade no socket antes de desistir
   });
 }
 
