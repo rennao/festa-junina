@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Painel de Pedidos — Festa Junina</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 900px; margin: 40px auto; padding: 0 16px; }
+    nav { text-align: center; margin-bottom: 24px; }
+    nav a { margin: 0 12px; text-decoration: none; color: #e67e22; font-weight: bold; }
+
+    /* ── Abas ── */
+    .abas { display: flex; gap: 8px; margin-bottom: 0; }
+    .aba-btn {
+      padding: 10px 24px; cursor: pointer; border: 2px solid #ccc;
+      background: #f5f5f5; font-size: 15px; border-bottom: none;
+    }
+    .aba-btn.ativa { background: white; border-color: #e67e22; color: #e67e22; font-weight: bold; }
+    .aba-conteudo { border: 2px solid #e67e22; padding: 20px; display: none; }
+    .aba-conteudo.ativa { display: block; }
+
+    /* ── Card de pedido (Aba Produção) ── */
+    .pedido-card {
+      border: 1px solid #ddd; border-radius: 6px; padding: 16px;
+      margin-bottom: 16px; background: white;
+    }
+    .pedido-card.finalizado { opacity: 0.5; border-color: #aaa; }
+    .pedido-card h3 { margin: 0 0 4px; font-size: 18px; }
+    .pedido-card .ticket { color: #e67e22; font-weight: bold; font-size: 15px; }
+    .pedido-card .email { color: #666; font-size: 13px; }
+    .itens-check { margin: 10px 0; }
+    .itens-check label { display: flex; align-items: center; gap: 8px; margin: 6px 0; cursor: pointer; }
+    .itens-check input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; }
+    .btn-finalizar {
+      margin-top: 10px; padding: 8px 20px; background: #27ae60;
+      color: white; border: none; cursor: pointer; font-size: 14px; border-radius: 4px;
+    }
+    .btn-finalizar:disabled { background: #aaa; cursor: default; }
+
+    /* ── Lista da Pré-Venda ── */
+    .prevenda-item {
+      border-bottom: 1px solid #eee; padding: 14px 0;
+    }
+    .prevenda-item:last-child { border-bottom: none; }
+    .prevenda-nome { font-size: 22px; font-weight: bold; }
+    .prevenda-ticket { color: #e67e22; font-size: 16px; font-weight: bold; }
+    .prevenda-email { color: #555; font-size: 14px; }
+    .prevenda-itens { color: #333; font-size: 14px; margin-top: 4px; }
+    .status-badge {
+      display: inline-block; padding: 2px 10px; border-radius: 12px;
+      font-size: 12px; font-weight: bold; margin-left: 8px;
+    }
+    .status-pendente { background: #fff3cd; color: #856404; }
+    .status-finalizado { background: #d4edda; color: #155724; }
+
+    #btn-atualizar { margin-bottom: 16px; padding: 8px 16px; cursor: pointer; }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <a href="/">🎟️ Fazer Pedido</a>
+    <a href="/painel.html">📋 Painel de Pedidos</a>
+  </nav>
+
+  <h1>📋 Painel de Pedidos</h1>
+  <button id="btn-atualizar" onclick="carregarPedidos()">🔄 Atualizar</button>
+
+  <!-- ── ABAS ───────────────────────────────────────────────────────────── -->
+  <!-- Duas abas: "Produção" (para quem faz os pedidos) e "Pré-Venda" (lista geral) -->
+  <div class="abas">
+    <button class="aba-btn ativa" onclick="trocarAba('producao')">🍗 Produção</button>
+    <button class="aba-btn" onclick="trocarAba('prevenda')">📄 Pré-Venda</button>
+  </div>
+
+  <!-- Aba 1: Produção — mostra cards com checkboxes por item -->
+  <div id="aba-producao" class="aba-conteudo ativa">
+    <div id="lista-producao">Carregando pedidos...</div>
+  </div>
+
+  <!-- Aba 2: Pré-Venda — lista completa com nome grande, email e ticket -->
+  <div id="aba-prevenda" class="aba-conteudo">
+    <div id="lista-prevenda">Carregando...</div>
+  </div>
+
+
+  <script>
+    // Estado local: guarda os pedidos carregados da API
+    let pedidos = [];
+
+    // ── trocarAba ──────────────────────────────────────────────────────────
+    // Alterna entre as abas sem recarregar a página.
+    // Remove a classe 'ativa' de tudo e adiciona na aba clicada.
+    function trocarAba(nome) {
+      document.querySelectorAll(".aba-btn").forEach((b) => b.classList.remove("ativa"));
+      document.querySelectorAll(".aba-conteudo").forEach((c) => c.classList.remove("ativa"));
+
+      // O botão clicado é o que tem o onclick correspondente ao nome
+      const botoes = document.querySelectorAll(".aba-btn");
+      const nomes = ["producao", "prevenda"];
+      botoes[nomes.indexOf(nome)].classList.add("ativa");
+
+      document.getElementById("aba-" + nome).classList.add("ativa");
+    }
+
+    // ── carregarPedidos ────────────────────────────────────────────────────
+    // Chama GET /api/pedidos, recebe a lista JSON e renderiza as duas abas.
+    async function carregarPedidos() {
+      try {
+        const resposta = await fetch("/api/pedidos");
+        pedidos = await resposta.json();
+        renderizarProducao();
+        renderizarPreVenda();
+      } catch (err) {
+        document.getElementById("lista-producao").innerHTML = "Erro ao carregar pedidos.";
+        console.error(err);
+      }
+    }
+
+    // ── renderizarProducao ─────────────────────────────────────────────────
+    // Cria um card para cada pedido com checkboxes por item e botão "Finalizar".
+    function renderizarProducao() {
+      const div = document.getElementById("lista-producao");
+
+      // Mostra pendentes primeiro, depois finalizados
+      const ordenados = [...pedidos].sort((a, b) => {
+        if (a.status === b.status) return 0;
+        return a.status === "pendente" ? -1 : 1;
+      });
+
+      if (ordenados.length === 0) {
+        div.innerHTML = "<p>Nenhum pedido ainda.</p>";
+        return;
+      }
+
+      div.innerHTML = ordenados.map((pedido) => {
+        // Monta as checkboxes de cada item do pedido
+        // Cada checkbox chama marcarItem() ao ser clicada
+        const itensHTML = pedido.itens.map((item) => {
+          const feito = pedido.itensFinalizados.includes(item);
+          return `
+            <label>
+              <input 
+                type="checkbox" 
+                ${feito ? "checked" : ""}
+                onchange="marcarItem('${pedido.ticketNumero}', '${item.replace(/'/g, "\\'")}', this)"
+              />
+              <span style="${feito ? "text-decoration:line-through;color:#aaa" : ""}">${item}</span>
+            </label>
+          `;
+        }).join("");
+
+        const finalizado = pedido.status === "finalizado";
+
+        return `
+          <div class="pedido-card ${finalizado ? "finalizado" : ""}" id="card-${pedido.ticketNumero}">
+            <h3>${pedido.nome}</h3>
+            <div class="ticket">${pedido.ticketNumero}</div>
+            <div class="email">${pedido.email}</div>
+            <div class="itens-check">${itensHTML}</div>
+            <button 
+              class="btn-finalizar" 
+              onclick="finalizarPedido('${pedido.ticketNumero}')"
+              ${finalizado ? "disabled" : ""}
+            >
+              ${finalizado ? "✅ Finalizado" : "Finalizar Pedido"}
+            </button>
+          </div>
+        `;
+      }).join("");
+    }
+
+    // ── renderizarPreVenda ─────────────────────────────────────────────────
+    // Lista todos os pedidos da pré-venda com nome grande, email e número do ticket.
+    function renderizarPreVenda() {
+      const div = document.getElementById("lista-prevenda");
+
+      if (pedidos.length === 0) {
+        div.innerHTML = "<p>Nenhum pedido registrado.</p>";
+        return;
+      }
+
+      div.innerHTML = pedidos.map((pedido) => {
+        const badge = pedido.status === "finalizado"
+          ? `<span class="status-badge status-finalizado">Finalizado</span>`
+          : `<span class="status-badge status-pendente">Pendente</span>`;
+
+        const itensTexto = pedido.itens.join(", ");
+
+        return `
+          <div class="prevenda-item">
+            <div class="prevenda-nome">${pedido.nome} ${badge}</div>
+            <div class="prevenda-ticket">${pedido.ticketNumero}</div>
+            <div class="prevenda-email">${pedido.email}</div>
+            <div class="prevenda-itens">🍽️ ${itensTexto}</div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    // ── marcarItem ────────────────────────────────────────────────────────
+    // Chamada quando o usuário clica em uma checkbox de item.
+    // Envia PATCH /api/pedidos/:ticket/item com o nome do item.
+    // Nota: por simplicidade, só marcamos como feito (não desmarcamos).
+    async function marcarItem(ticket, item, checkbox) {
+      if (!checkbox.checked) {
+        // Opcional: permitir desmarcar depois. Por ora, ignora.
+        checkbox.checked = true;
+        return;
+      }
+
+      try {
+        const resposta = await fetch(`/api/pedidos/${ticket}/item`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ item }),
+        });
+
+        const dados = await resposta.json();
+
+        if (resposta.ok) {
+          // Atualiza o pedido na lista local sem precisar recarregar tudo
+          const idx = pedidos.findIndex((p) => p.ticketNumero === ticket);
+          if (idx !== -1) pedidos[idx] = dados.pedido;
+          renderizarProducao();
+        }
+      } catch (err) {
+        console.error("Erro ao marcar item:", err);
+        checkbox.checked = false;
+      }
+    }
+
+    // ── finalizarPedido ───────────────────────────────────────────────────
+    // Chama PATCH /api/pedidos/:ticket/finalizar para marcar o pedido inteiro como feito.
+    async function finalizarPedido(ticket) {
+      if (!confirm(`Finalizar o pedido ${ticket}?`)) return;
+
+      try {
+        const resposta = await fetch(`/api/pedidos/${ticket}/finalizar`, {
+          method: "PATCH",
+        });
+
+        const dados = await resposta.json();
+
+        if (resposta.ok) {
+          const idx = pedidos.findIndex((p) => p.ticketNumero === ticket);
+          if (idx !== -1) pedidos[idx] = dados.pedido;
+          renderizarProducao();
+          renderizarPreVenda();
+        }
+      } catch (err) {
+        console.error("Erro ao finalizar pedido:", err);
+      }
+    }
+
+    // Carrega os pedidos assim que a página abre
+    carregarPedidos();
+  </script>
+
+</body>
+</html>

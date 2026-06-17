@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Festa Junina — Pré-Venda</title>
+  <!-- CSS virá depois conforme você definir. Por ora, estilo mínimo funcional -->
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 600px; margin: 40px auto; padding: 0 16px; }
+    h1 { text-align: center; }
+    label { display: block; margin-top: 12px; font-weight: bold; }
+    input[type="text"], input[type="email"] { width: 100%; padding: 8px; box-sizing: border-box; margin-top: 4px; }
+    .itens-lista { margin-top: 8px; }
+    .item-row { display: flex; gap: 8px; margin-top: 6px; }
+    .item-row input { flex: 1; padding: 6px; }
+    .item-row button { padding: 6px 10px; cursor: pointer; background: #c0392b; color: white; border: none; }
+    button#adicionar-item { margin-top: 8px; padding: 6px 14px; cursor: pointer; }
+    button#enviar { margin-top: 20px; width: 100%; padding: 12px; font-size: 16px; background: #e67e22; color: white; border: none; cursor: pointer; }
+    #mensagem { margin-top: 16px; padding: 12px; border-radius: 4px; display: none; }
+    .sucesso { background: #d4edda; color: #155724; }
+    .erro { background: #f8d7da; color: #721c24; }
+    nav { text-align: center; margin-bottom: 24px; }
+    nav a { margin: 0 12px; text-decoration: none; color: #e67e22; font-weight: bold; }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <a href="/">🎟️ Fazer Pedido</a>
+    <a href="/painel.html">📋 Painel de Pedidos</a>
+  </nav>
+
+  <h1>🎪 Festa Junina — Pré-Venda</h1>
+  <p style="text-align:center;">Preencha seus dados e escolha os itens do seu pedido.</p>
+
+  <!-- ── FORMULÁRIO DE PEDIDO ──────────────────────────────────────────── -->
+  <!-- Não usamos <form> com action/method clássico. O envio é feito via
+       JavaScript com fetch(), que chama nossa API sem recarregar a página. -->
+
+  <label for="nome">Nome completo</label>
+  <input type="text" id="nome" placeholder="Ex: João da Silva" />
+
+  <label for="email">E-mail</label>
+  <input type="email" id="email" placeholder="seuemail@exemplo.com" />
+
+  <label>Itens do pedido</label>
+  <!-- Os itens são campos dinâmicos criados pelo JS abaixo -->
+  <div id="itens-lista" class="itens-lista">
+    <!-- Item inicial -->
+    <div class="item-row">
+      <input type="text" placeholder="Ex: Espetinho de frango" />
+      <button onclick="removerItem(this)">✕</button>
+    </div>
+  </div>
+  <button id="adicionar-item" onclick="adicionarItem()">+ Adicionar item</button>
+
+  <button id="enviar" onclick="enviarPedido()">Confirmar Pedido e Receber Ticket</button>
+
+  <!-- Área de feedback para o usuário -->
+  <div id="mensagem"></div>
+
+
+  <script>
+    // ── adicionarItem ──────────────────────────────────────────────────────
+    // Cria dinamicamente um novo campo de texto para o usuário digitar um item.
+    // O botão ✕ chama removerItem() passando o próprio botão como referência.
+    function adicionarItem() {
+      const lista = document.getElementById("itens-lista");
+      const row = document.createElement("div");
+      row.className = "item-row";
+      row.innerHTML = `
+        <input type="text" placeholder="Ex: Quentão" />
+        <button onclick="removerItem(this)">✕</button>
+      `;
+      lista.appendChild(row);
+    }
+
+    // ── removerItem ────────────────────────────────────────────────────────
+    // Remove a linha do item. O btn.parentElement é o div.item-row pai do botão.
+    function removerItem(btn) {
+      btn.parentElement.remove();
+    }
+
+    // ── enviarPedido ───────────────────────────────────────────────────────
+    // Lê os campos, valida, e faz um POST para /api/pedidos via fetch().
+    // fetch() é nativo do browser — não precisa de biblioteca.
+    async function enviarPedido() {
+      const nome = document.getElementById("nome").value.trim();
+      const email = document.getElementById("email").value.trim();
+
+      // Coleta todos os inputs de item e filtra os vazios
+      const inputs = document.querySelectorAll("#itens-lista input");
+      const itens = Array.from(inputs)
+        .map((i) => i.value.trim())
+        .filter((v) => v !== "");
+
+      const msgDiv = document.getElementById("mensagem");
+
+      // Validação no lado do cliente (frontend) — rápida, antes de chamar a API
+      if (!nome || !email) {
+        mostrarMensagem("Por favor, preencha nome e e-mail.", "erro");
+        return;
+      }
+      if (itens.length === 0) {
+        mostrarMensagem("Adicione pelo menos um item ao pedido.", "erro");
+        return;
+      }
+
+      // Desabilita o botão durante o envio para evitar cliques duplos
+      const btn = document.getElementById("enviar");
+      btn.disabled = true;
+      btn.textContent = "Enviando...";
+
+      try {
+        // fetch() faz uma requisição HTTP assíncrona.
+        // await pausa aqui até a resposta chegar.
+        const resposta = await fetch("/api/pedidos", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          // JSON.stringify() converte o objeto JS em texto JSON para enviar
+          body: JSON.stringify({ nome, email, itens }),
+        });
+
+        // resposta.json() lê o corpo da resposta e converte de JSON para objeto JS
+        const dados = await resposta.json();
+
+        if (resposta.ok) {
+          // Pedido criado com sucesso — mostra o número do ticket
+          mostrarMensagem(
+            `✅ Pedido confirmado! Seu ticket é <strong>${dados.pedido.ticketNumero}</strong>. 
+             ${dados.emailEnviado ? "Verifique seu e-mail!" : "⚠️ E-mail não enviado (verifique as configurações)."}`,
+            "sucesso"
+          );
+          // Limpa o formulário
+          document.getElementById("nome").value = "";
+          document.getElementById("email").value = "";
+          document.getElementById("itens-lista").innerHTML = `
+            <div class="item-row">
+              <input type="text" placeholder="Ex: Espetinho de frango" />
+              <button onclick="removerItem(this)">✕</button>
+            </div>`;
+        } else {
+          mostrarMensagem("Erro: " + (dados.erro || "Tente novamente."), "erro");
+        }
+      } catch (err) {
+        // Isso acontece se o servidor estiver offline ou houver erro de rede
+        mostrarMensagem("Erro de conexão com o servidor.", "erro");
+        console.error(err);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Confirmar Pedido e Receber Ticket";
+      }
+    }
+
+    // ── mostrarMensagem ────────────────────────────────────────────────────
+    // Exibe a mensagem de feedback com a classe CSS correta (sucesso ou erro)
+    function mostrarMensagem(texto, tipo) {
+      const div = document.getElementById("mensagem");
+      div.innerHTML = texto;
+      div.className = tipo; // 'sucesso' ou 'erro'
+      div.style.display = "block";
+    }
+  </script>
+
+</body>
+</html>

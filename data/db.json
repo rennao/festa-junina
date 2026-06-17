@@ -1,0 +1,197 @@
+{
+  "pedidos": [
+    {
+      "id": 1,
+      "ticketNumero": "FJ-0001",
+      "nome": "Teste",
+      "email": "teste@teste.com",
+      "itens": [
+        "Espetinho",
+        "Quentão"
+      ],
+      "itensFinalizados": [
+        "Espetinho",
+        "Quentão"
+      ],
+      "status": "finalizado",
+      "criadoEm": "2026-06-16T23:18:17.340Z"
+    },
+    {
+      "id": 2,
+      "ticketNumero": "FJ-0002",
+      "nome": "Renner fagundes",
+      "email": "rennerfag@gmail.com",
+      "itens": [
+        "cachorro quente completo",
+        "refrigerante"
+      ],
+      "itensFinalizados": [
+        "cachorro quente completo",
+        "refrigerante"
+      ],
+      "status": "finalizado",
+      "criadoEm": "2026-06-16T23:43:13.039Z"
+    },
+    {
+      "id": 3,
+      "ticketNumero": "FJ-0003",
+      "nome": "Pankeka",
+      "email": "rennercand@gmail.com",
+      "itens": [
+        "hotdog",
+        "refrigerante"
+      ],
+      "itensFinalizados": [
+        "hotdog",
+        "refrigerante"
+      ],
+      "status": "finalizado",
+      "criadoEm": "2026-06-16T23:57:08.008Z"
+    },
+    {
+      "id": 4,
+      "ticketNumero": "FJ-0004",
+      "nome": "pankekabranquinhascoobynidonegaozini",
+      "email": "rennercand@gmail.com",
+      "itens": [
+        "rotdog"
+      ],
+      "itensFinalizados": [
+        "rotdog"
+      ],
+      "status": "finalizado",
+      "criadoEm": "2026-06-17T00:00:10.153Z"
+    },
+    {
+      "id": 5,
+      "ticketNumero": "FJ-0005",
+      "nome": "pankekiniscoobynibranquinidaprincesini",
+      "email": "rennercand@gmail.com",
+      "itens": [
+        "rotdog"
+      ],
+      "itensFinalizados": [
+        "rotdog"
+      ],
+      "status": "finalizado",
+      "criadoEm": "2026-06-17T00:01:58.945Z"
+    },
+    {
+      "id": 6,
+      "ticketNumero": "FJ-0006",
+      "nome": "pankekininegaozinibranquiniprincesini",
+      "email": "rennercand@gmail.com",
+      "itens": [
+        "rotdog"
+      ],
+      "itensFinalizados": [
+        "rotdog"
+      ],
+      "status": "finalizado",
+      "criadoEm": "2026-06-17T00:03:00.523Z"
+    },
+    {
+      "id": 7,
+      "ticketNumero": "FJ-0007",
+      "nome": "pankekin",
+      "email": "rennercand@gmail.com",
+      "itens": [
+        "rotdog"
+      ],
+      "itensFinalizados": [
+        "rotdog"
+      ],
+      "status": "finalizado",
+      "criadoEm": "2026-06-17T00:03:15.669Z"
+    },
+    {
+      "id": 8,
+      "ticketNumero": "FJ-0008",
+      "nome": "pankekin",
+      "email": "rennercand@gmail.com",
+      "itens": [
+        "rotdog"
+      ],
+      "itensFinalizados": [
+        "rotdog"
+      ],
+      "status": "finalizado",
+      "criadoEm": "2026-06-17T00:03:16.410Z"
+    },
+    {
+      "id": 9,
+      "ticketNumero": "FJ-0009",
+      "nome": "pankekin",
+      "email": "rennercand@gmail.com",
+      "itens": [
+        "rotdog"
+      ],
+      "itensFinalizados": [
+        "rotdog"
+      ],
+      "status": "finalizado",
+      "criadoEm": "2026-06-17T00:03:17.045Z"
+    },
+    {
+      "id": 10,
+      "ticketNumero": "FJ-0010",
+      "nome": "pankekiniscoobinibranquiniprincesini",
+      "email": "rennercand@gmail.com",
+      "itens": [
+        "rotdog"
+      ],
+      "itensFinalizados": [
+        "rotdog"
+      ],
+      "status": "finalizado",
+      "criadoEm": "2026-06-17T00:04:40.279Z"
+    },
+    {
+      "id": 11,
+      "ticketNumero": "FJ-0011",
+      "nome": "cristhian xavier",
+      "email": "cristhianxavier38@gmail.com",
+      "itens": [
+        "rotdog",
+        "princesinha",
+        "branquinha"
+      ],
+      "itensFinalizados": [
+        "rotdog",
+        "princesinha",
+        "branquinha"
+      ],
+      "status": "finalizado",
+      "criadoEm": "2026-06-17T00:16:49.495Z"
+    },
+    {
+      "id": 12,
+      "ticketNumero": "FJ-0012",
+      "nome": "yitgugbyu",
+      "email": "rennercand@gmail.com",
+      "itens": [
+        "rotdog"
+      ],
+      "itensFinalizados": [
+        "rotdog"
+      ],
+      "status": "finalizado",
+      "criadoEm": "2026-06-17T00:46:50.445Z"
+    },
+    {
+      "id": 13,
+      "ticketNumero": "FJ-0013",
+      "nome": "renner",
+      "email": "rennercand@gmail.com",
+      "itens": [
+        "rotdog"
+      ],
+      "itensFinalizados": [
+        "rotdog"
+      ],
+      "status": "finalizado",
+      "criadoEm": "2026-06-17T00:50:32.606Z"
+    }
+  ],
+  "contador": 13
+}
