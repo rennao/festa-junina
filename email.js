@@ -1,7 +1,7 @@
 const nodemailer = require("nodemailer");
 
 const EMAIL_USER = process.env.EMAIL_USER || "rennerfag@gmail.com";
-const EMAIL_PASS = process.env.EMAIL_PASS || "SUA_SENHA_DE_APP_AQUI"; // ← gere uma nova
+const EMAIL_PASS = process.env.EMAIL_PASS || "rahomdgvywdhlxeb"; // ← gere uma nova
 
 function criarTransporter() {
   return nodemailer.createTransport({
