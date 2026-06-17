@@ -10,7 +10,6 @@ const { enviarTicket } = require("./email");
 const app = express();
 const PORTA = process.env.PORT || 3000;
 
-// Senha do operador (pode mover para variável de ambiente depois)
 const SENHA_OPERADOR = process.env.SENHA_OPERADOR || "pankeka67";
 
 // ─── MIDDLEWARES ──────────────────────────────────────────────────────────────
@@ -29,17 +28,26 @@ app.post("/api/pedidos", async (req, res) => {
     return res.status(400).json({ erro: "Campos obrigatórios: nome, email e pelo menos um item." });
   }
 
+  let pedido;
   try {
-    const pedido = db.criarPedido({ nome, email, itens });
+    pedido = db.criarPedido({ nome, email, itens });
     console.log(`📦 Novo pedido criado: ${pedido.ticketNumero} — ${nome}`);
-
-    const resultadoEmail = await enviarTicket(pedido);
-
-    res.status(201).json({ mensagem: "Pedido criado com sucesso!", pedido, emailEnviado: resultadoEmail.sucesso });
   } catch (erro) {
-    console.error("Erro ao criar pedido:", erro);
-    res.status(500).json({ erro: "Erro interno ao criar o pedido." });
+    // ✅ Erro separado: falha ao salvar no banco
+    console.error("Erro ao criar pedido no banco:", erro);
+    return res.status(500).json({ erro: "Erro interno ao criar o pedido." });
   }
+
+  // ✅ E-mail separado: falha no e-mail NÃO cancela o pedido
+  let emailEnviado = false;
+  try {
+    const resultadoEmail = await enviarTicket(pedido);
+    emailEnviado = resultadoEmail.sucesso;
+  } catch (erro) {
+    console.error("Erro ao enviar e-mail (pedido já salvo):", erro);
+  }
+
+  res.status(201).json({ mensagem: "Pedido criado com sucesso!", pedido, emailEnviado });
 });
 
 // GET /api/pedidos — Lista todos os pedidos
@@ -89,7 +97,6 @@ app.post("/api/prevenda", async (req, res) => {
   }
 
   const { nome, email, hotdogCompleto, adicionais } = req.body;
-  // adicionais: { cheddar: bool, bacon: bool }
 
   if (!nome || !email) {
     return res.status(400).json({ erro: "Nome e e-mail são obrigatórios." });
@@ -98,34 +105,33 @@ app.post("/api/prevenda", async (req, res) => {
     return res.status(400).json({ erro: "Selecione ao menos um item." });
   }
 
-  // Monta lista de itens e calcula total
   const itens = [];
   let total = 0;
 
-  if (hotdogCompleto) {
-    itens.push("Hot Dog Completo");
-    total += 15;
-  }
-  if (adicionais?.cheddar) {
-    itens.push("+Cheddar");
-    total += 1;
-  }
-  if (adicionais?.bacon) {
-    itens.push("+Bacon");
-    total += 1;
-  }
+  if (hotdogCompleto) { itens.push("Hot Dog Completo"); total += 15; }
+  if (adicionais?.cheddar) { itens.push("+Cheddar"); total += 1; }
+  if (adicionais?.bacon) { itens.push("+Bacon"); total += 1; }
 
+  let pedido;
   try {
-    const pedido = db.criarPrevendaHotdog({ nome, email, itens, total });
+    pedido = db.criarPrevendaHotdog({ nome, email, itens, total });
     console.log(`🌭 Pré-venda criada: ${pedido.ticketNumero} — ${nome} — R$${total}`);
-
-    const resultadoEmail = await enviarTicket({ ...pedido, total });
-
-    res.status(201).json({ mensagem: "Pré-venda confirmada!", pedido, emailEnviado: resultadoEmail.sucesso });
   } catch (erro) {
-    console.error("Erro ao criar pré-venda:", erro);
-    res.status(500).json({ erro: "Erro interno ao criar a pré-venda." });
+    // ✅ Erro separado: falha ao salvar no banco
+    console.error("Erro ao criar pré-venda no banco:", erro);
+    return res.status(500).json({ erro: "Erro interno ao criar a pré-venda." });
   }
+
+  // ✅ E-mail separado: falha no e-mail NÃO cancela a pré-venda
+  let emailEnviado = false;
+  try {
+    const resultadoEmail = await enviarTicket({ ...pedido, total });
+    emailEnviado = resultadoEmail.sucesso;
+  } catch (erro) {
+    console.error("Erro ao enviar e-mail (pré-venda já salva):", erro);
+  }
+
+  res.status(201).json({ mensagem: "Pré-venda confirmada!", pedido, emailEnviado });
 });
 
 
