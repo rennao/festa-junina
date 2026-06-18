@@ -9,7 +9,7 @@ const db = require("./db");
 const app = express();
 const PORTA = process.env.PORT || 3000;
 
-const SENHA_OPERADOR = process.env.SENHA_OPERADOR || "pankeka67";
+const SENHA_OPERADOR = process.env.SENHA_OPERADOR || "cenoriniscoobini";
 
 // ─── MIDDLEWARES ──────────────────────────────────────────────────────────────
 app.use(cors());
