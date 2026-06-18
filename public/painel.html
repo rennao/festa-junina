@@ -492,6 +492,11 @@
           </label>`;
       }).join("");
 
+      // Extrai quantidade do item "Hot Dog Completo xN"
+      const qtdMatch = (pedido.itens || []).find(i => /x\d+/i.test(i));
+      const qtdTag = qtdMatch
+        ? `<span style="display:inline-block;background:#fff3cd;color:#856404;border-radius:10px;padding:1px 10px;font-size:12px;font-weight:700;margin-left:4px;">${qtdMatch.match(/x(\d+)/i)[0]}</span>`
+        : "";
       const totalTag = isPv && pedido.total != null
         ? `<span class="total-tag">R$ ${Number(pedido.total).toFixed(2).replace(".",",")}</span>` : "";
 
@@ -500,7 +505,7 @@
 
       return `
         <div class="pedido-card ${isPv?"tipo-pv":""}" id="card-${pedido.ticketNumero}">
-          <h3>${pedido.nome} ${totalTag}</h3>
+          <h3>${pedido.nome} ${qtdTag} ${totalTag}</h3>
           <div class="ticket ${isPv?"pv-ticket":""}">${pedido.ticketNumero}</div>
           <div class="itens-check">${itensHTML}</div>
           ${obsHTML}
@@ -532,13 +537,15 @@
       const itensBrutos = isPv ? (p.itens || []) : p.itens;
       const itensExib   = itensBrutos.filter(i => !i.startsWith("OBS:"));
       const obsItem     = itensBrutos.find(i => i.startsWith("OBS:"));
+      const qtdMatchH = (p.itens || []).find(i => /x\d+/i.test(i));
+      const qtdTagH   = qtdMatchH ? ` · <strong>${qtdMatchH.match(/x\d+/i)[0]} unid.</strong>` : "";
       const totalTag    = isPv && p.total != null
         ? ` · <strong>R$ ${Number(p.total).toFixed(2).replace(".",",")}</strong>` : "";
 
       return `
         <div class="prevenda-item">
           <div class="prevenda-nome">${p.nome} ${badge}</div>
-          <div class="prevenda-ticket ${isPv?"pv-ticket":""}">${p.ticketNumero}${totalTag}</div>
+          <div class="prevenda-ticket ${isPv?"pv-ticket":""}">${p.ticketNumero}${qtdTagH}${totalTag}</div>
           <div class="prevenda-itens">🍽️ ${itensExib.join(", ")}</div>
           ${obsItem ? `<div class="obs-tag" style="margin-top:6px;">📝 ${obsItem.replace("OBS: ","")}</div>` : ""}
         </div>`;
@@ -600,6 +607,7 @@
             <th style="padding:10px 12px;text-align:left;border-bottom:2px solid #eee;color:var(--escuro);">Ticket</th>
             <th style="padding:10px 12px;text-align:left;border-bottom:2px solid #eee;color:var(--escuro);">Nome</th>
             <th style="padding:10px 12px;text-align:left;border-bottom:2px solid #eee;color:var(--escuro);">Itens</th>
+            <th style="padding:10px 12px;text-align:left;border-bottom:2px solid #eee;color:var(--escuro);">Qtd</th>
             <th style="padding:10px 12px;text-align:left;border-bottom:2px solid #eee;color:var(--escuro);">Total</th>
             <th style="padding:10px 12px;text-align:left;border-bottom:2px solid #eee;color:var(--escuro);">Status</th>
           </tr>
@@ -607,6 +615,8 @@
         <tbody>
           ${pvs.map((p, i) => {
             const itens = (p.itens || []).filter(x => !x.startsWith("OBS:")).join(", ");
+            const qtdSortMatch = (p.itens || []).find(i => /x\d+/i.test(i));
+            const qtdSort = qtdSortMatch ? parseInt(qtdSortMatch.match(/x(\d+)/i)[1]) : 1;
             const total = p.total != null ? "R$ " + Number(p.total).toFixed(2).replace(".",",") : "-";
             const badge = p.status === "finalizado"
               ? `<span class="status-badge status-finalizado">Finalizado</span>`
@@ -616,6 +626,7 @@
               <td style="padding:10px 12px;font-weight:700;color:#856404;">${p.ticketNumero}</td>
               <td style="padding:10px 12px;font-weight:600;">${p.nome}</td>
               <td style="padding:10px 12px;color:#555;">${itens}</td>
+              <td style="padding:10px 12px;font-weight:700;color:#856404;">${qtdSort}</td>
               <td style="padding:10px 12px;font-weight:700;color:var(--verde);">${total}</td>
               <td style="padding:10px 12px;">${badge}</td>
             </tr>`;

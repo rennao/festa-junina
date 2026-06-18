@@ -549,11 +549,15 @@
       <hr class="divider" />
       <div class="section-label">Monte seu Hot Dog</div>
 
-      <label class="check-row" style="border-color:var(--caramelo);background:var(--palha);">
-        <input type="checkbox" id="chk-hotdog" checked disabled style="accent-color:var(--caramelo);" />
+      <div class="check-row" style="border-color:var(--caramelo);background:var(--palha);cursor:default;">
         <span class="check-name" style="font-weight:700;">Cachorro Quente</span>
-        <span class="check-price">R$ 15</span>
-      </label>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span class="check-price" id="preco-hotdog">R$ 15</span>
+          <button type="button" onclick="alterarQtd(-1)" style="width:30px;height:30px;border-radius:50%;border:1.5px solid var(--border);background:var(--branco);font-size:18px;cursor:pointer;line-height:1;color:var(--muted);">−</button>
+          <span id="qtd-hotdog" style="font-size:18px;font-weight:700;min-width:20px;text-align:center;">1</span>
+          <button type="button" onclick="alterarQtd(1)" style="width:30px;height:30px;border-radius:50%;border:none;background:var(--caramelo);color:white;font-size:18px;cursor:pointer;line-height:1;font-weight:700;">+</button>
+        </div>
+      </div>
 
       <label class="check-row" id="row-cheddar" onclick="toggleAdicional('cheddar')" style="cursor:pointer;">
         <input type="checkbox" id="chk-cheddar" style="pointer-events:none;" />
@@ -676,9 +680,15 @@
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ nome, email: "sem-email@festa.local", itens }),
       });
-      const d = await r.json();
-      if (r.ok) {
+
+      // ✅ Tenta ler o JSON mesmo em caso de erro
+      let d = {};
+      try { d = await r.json(); } catch(_) {}
+
+      if (r.ok && d.pedido) {
+        // ✅ Mostra o ticket na tela imediatamente
         mostrarTicket("normal", d.pedido, null);
+        // Limpa o formulário
         document.getElementById("nome").value = "";
         document.getElementById("obs-normal").value = "";
         document.getElementById("chk-cheddar-n").checked = false;
@@ -691,10 +701,10 @@
         qrNormalAtual = 0;
         atualizarQRNormal(15);
       } else {
-        mostrarErro("erro-normal", d.erro || "Tente novamente.");
+        mostrarErro("erro-normal", d.erro || "Erro ao registrar pedido. Tente novamente.");
       }
     } catch(e) {
-      mostrarErro("erro-normal", "Erro de conexao.");
+      mostrarErro("erro-normal", "Erro de conexao. Verifique sua internet e tente novamente.");
     } finally {
       clearTimeout(avisoDemora);
       btn.disabled = false; btn.textContent = "Confirmar Pedido";
@@ -754,10 +764,19 @@
     atualizarTotal();
   }
 
+  let qtdHotdog = 1;
+
+  function alterarQtd(delta) {
+    qtdHotdog = Math.max(1, qtdHotdog + delta);
+    document.getElementById("qtd-hotdog").textContent = qtdHotdog;
+    document.getElementById("preco-hotdog").textContent = "R$ " + (15 * qtdHotdog);
+    atualizarTotal();
+  }
+
   function atualizarTotal() {
-    let t = 15; // hotdog sempre incluso
-    if (document.getElementById("chk-cheddar").checked) t += 1;
-    if (document.getElementById("chk-bacon").checked)   t += 1;
+    let t = 15 * qtdHotdog;
+    if (document.getElementById("chk-cheddar").checked) t += 1 * qtdHotdog;
+    if (document.getElementById("chk-bacon").checked)   t += 1 * qtdHotdog;
     document.getElementById("total-display").textContent = "R$ " + t.toFixed(2).replace(".", ",");
     atualizarQRPv(t);
   }
@@ -784,17 +803,26 @@
   function removerItem(btn) { btn.parentElement.remove(); }
 
   function mostrarTicket(prefixo, pedido, total) {
+    if (!pedido || !pedido.ticketNumero) {
+      mostrarErro("erro-" + prefixo, "Pedido registrado mas nao foi possivel exibir o ticket. Anote seu numero no painel.");
+      return;
+    }
+
     document.getElementById("tc-numero-" + prefixo).textContent = pedido.ticketNumero;
     document.getElementById("tc-nome-"   + prefixo).textContent = pedido.nome;
 
-    let msg = "Pedido confirmado! Guarde seu numero de ticket.";
+    let msg = "✅ Pedido confirmado! Guarde este numero.";
     if (total != null)
       msg += "  |  Total: R$ " + Number(total).toFixed(2).replace(".", ",");
     document.getElementById("tc-msg-" + prefixo).textContent = msg;
 
     const card = document.getElementById("ticket-" + prefixo);
     card.style.display = "block";
-    card.scrollIntoView({ behavior: "smooth", block: "center" });
+
+    // ✅ Aguarda o display:block ser aplicado antes de rolar
+    setTimeout(() => {
+      card.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 50);
   }
 
   async function enviarPrevenda() {
@@ -819,14 +847,21 @@
           nome,
           email: "sem-email@festa.local",
           hotdogCompleto: true,
+          quantidade: qtdHotdog,
           adicionais: { cheddar, bacon },
           obs
         }),
       });
-      const d = await r.json();
-      if (r.ok) {
+
+      // ✅ Tenta ler o JSON mesmo em caso de erro
+      let d = {};
+      try { d = await r.json(); } catch(_) {}
+
+      if (r.ok && d.pedido) {
+        // ✅ Mostra o ticket na tela imediatamente
         const total = (d.pedido && d.pedido.total) ?? d.total ?? null;
         mostrarTicket("pv", d.pedido, total);
+        // Limpa o formulário
         document.getElementById("nome-pv").value = "";
         document.getElementById("obs-pv").value = "";
         document.getElementById("chk-cheddar").checked = false;
@@ -835,13 +870,16 @@
         document.getElementById("row-cheddar").style.background  = "var(--branco)";
         document.getElementById("row-bacon").style.borderColor   = "var(--border)";
         document.getElementById("row-bacon").style.background    = "var(--branco)";
+        qtdHotdog = 1;
+        document.getElementById("qtd-hotdog").textContent = "1";
+        document.getElementById("preco-hotdog").textContent = "R$ 15";
         qrPvAtual = 0;
         atualizarTotal();
       } else {
-        mostrarErro("erro-pv", d.erro || "Tente novamente.");
+        mostrarErro("erro-pv", d.erro || "Erro ao registrar pre-venda. Tente novamente.");
       }
     } catch(e) {
-      mostrarErro("erro-pv", "Erro de conexao.");
+      mostrarErro("erro-pv", "Erro de conexao. Verifique sua internet e tente novamente.");
     } finally {
       clearTimeout(avisoDemora);
       btn.disabled = false; btn.textContent = "Confirmar Pre-Venda";
