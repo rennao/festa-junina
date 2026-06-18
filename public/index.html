@@ -477,11 +477,15 @@
     </div>
     -->
 
-    <label class="check-row" style="border-color:var(--caramelo);background:var(--palha);">
-      <input type="checkbox" checked disabled style="accent-color:var(--caramelo);" />
+    <div class="check-row" style="border-color:var(--caramelo);background:var(--palha);cursor:default;">
       <span class="check-name" style="font-weight:700;">Cachorro Quente</span>
-      <span class="check-price">R$ 15</span>
-    </label>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span class="check-price" id="preco-hotdog-n">R$ 15</span>
+        <button type="button" onclick="alterarQtdNormal(-1)" style="width:30px;height:30px;border-radius:50%;border:1.5px solid var(--border);background:var(--branco);font-size:18px;cursor:pointer;line-height:1;color:var(--muted);">−</button>
+        <span id="qtd-hotdog-n" style="font-size:18px;font-weight:700;min-width:20px;text-align:center;">1</span>
+        <button type="button" onclick="alterarQtdNormal(1)" style="width:30px;height:30px;border-radius:50%;border:none;background:var(--caramelo);color:white;font-size:18px;cursor:pointer;line-height:1;font-weight:700;">+</button>
+      </div>
+    </div>
 
     <label class="check-row" id="row-cheddar-n" onclick="toggleAdicionalNormal('cheddar')" style="cursor:pointer;">
       <input type="checkbox" id="chk-cheddar-n" style="pointer-events:none;" />
@@ -639,6 +643,23 @@
     }
   }
 
+  let qtdNormal = 1;
+
+  function alterarQtdNormal(delta) {
+    qtdNormal = Math.max(1, qtdNormal + delta);
+    document.getElementById("qtd-hotdog-n").textContent = qtdNormal;
+    document.getElementById("preco-hotdog-n").textContent = "R$ " + (15 * qtdNormal);
+    recalcularTotalNormal();
+  }
+
+  function recalcularTotalNormal() {
+    let t = 15 * qtdNormal;
+    if (document.getElementById("chk-cheddar-n").checked) t += 1 * qtdNormal;
+    if (document.getElementById("chk-bacon-n").checked)   t += 1 * qtdNormal;
+    document.getElementById("total-display-n").textContent = "R$ " + t.toFixed(2).replace(".", ",");
+    atualizarQRNormal(t);
+  }
+
   // Inicializa QR normal com R$15
   atualizarQRNormal(15);
 
@@ -648,11 +669,7 @@
     chk.checked = !chk.checked;
     row.style.borderColor = chk.checked ? "var(--caramelo)" : "var(--border)";
     row.style.background  = chk.checked ? "var(--palha)"   : "var(--branco)";
-    let t = 15;
-    if (document.getElementById("chk-cheddar-n").checked) t += 1;
-    if (document.getElementById("chk-bacon-n").checked)   t += 1;
-    document.getElementById("total-display-n").textContent = "R$ " + t.toFixed(2).replace(".", ",");
-    atualizarQRNormal(t);
+    recalcularTotalNormal();
   }
 
   async function enviarPedido() {
@@ -663,7 +680,7 @@
 
     if (!nome) return mostrarErro("erro-normal", "Preencha seu nome.");
 
-    const itens = ["Cachorro Quente"];
+    const itens = [qtdNormal > 1 ? `Cachorro Quente x${qtdNormal}` : "Cachorro Quente"];
     if (cheddar) itens.push("+Cheddar");
     if (bacon)   itens.push("+Bacon");
     if (obs)     itens.push("OBS: " + obs);
@@ -697,6 +714,9 @@
         document.getElementById("row-cheddar-n").style.background  = "var(--branco)";
         document.getElementById("row-bacon-n").style.borderColor   = "var(--border)";
         document.getElementById("row-bacon-n").style.background    = "var(--branco)";
+        qtdNormal = 1;
+        document.getElementById("qtd-hotdog-n").textContent = "1";
+        document.getElementById("preco-hotdog-n").textContent = "R$ 15";
         document.getElementById("total-display-n").textContent = "R$ 15,00";
         qrNormalAtual = 0;
         atualizarQRNormal(15);
