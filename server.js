@@ -113,7 +113,7 @@ app.post("/api/prevenda", (req, res) => {
     return res.status(403).json({ erro: "Pré-venda encerrada no momento." });
   }
 
-  const { nome, email, hotdogCompleto, quantidade, adicionais } = req.body;
+  const { nome, email, hotdogCompleto, quantidade, adicionais, obs } = req.body;
   const qtd = Math.max(1, parseInt(quantidade) || 1);
 
   if (!nome || !email) {
@@ -133,6 +133,7 @@ app.post("/api/prevenda", (req, res) => {
   }
   if (adicionais?.cheddar) { itens.push("+Cheddar"); total += 1 * qtd; }
   if (adicionais?.bacon)   { itens.push("+Bacon");   total += 1 * qtd; }
+  if (obs && obs.trim())   { itens.push("OBS: " + obs.trim()); }
 
   try {
     const pedido = db.criarPrevendaHotdog({ nome, email, itens, total });
