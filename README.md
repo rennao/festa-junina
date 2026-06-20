@@ -1,64 +1,46 @@
-# 🎪 Festa Junina — Sistema de Pedidos
+# Festa Junina — Sistema de Pedidos
+
+Sistema web criado para resolver um problema real de uma barraca de festa junina: parar de anotar pedido em papel. O cliente faz o pedido pelo celular e recebe um ticket; quem está na cozinha acompanha tudo organizado em um painel.
+
+Foi também o projeto onde aprendi Railway na prática
+
+## Stack
+
+- **Backend:** Node.js, Express
+- **Banco de dados:** SQLite (`better-sqlite3`)
+- **E-mail:** Nodemailer (Gmail)(não operante)
+- **Frontend:** HTML, CSS e JavaScript puro
+
+## Funcionalidades
+
+- Pedido normal e pré-venda de um item específico, com ticket gerado automaticamente (`FJ-0001`, `PV-0001`).
+- Campo de observações por pedido.
+- Confirmação automática por e-mail(não funcional
+- Painel administrativo com login: fila de produção, histórico, sorteio entre participantes da pré-venda e modo de edição para ocultar pedidos (ex: não pagamento) sem apagar do banco.
 
 ## Como rodar
 
-### 1. Instalar dependências
 ```bash
-cd festa-junina
 npm install
 ```
 
-### 2. Configurar o e-mail (Gmail)
-Abra o arquivo `email.js` e substitua:
-```js
-user: "seuemail@gmail.com",
-pass: "sua_senha_de_app_aqui",
-```
-
-> ⚠️ A senha NÃO é sua senha normal do Gmail.
-> Você precisa gerar uma **Senha de App**:
-> 1. Acesse: https://myaccount.google.com/security
-> 2. Ative a verificação em duas etapas
-> 3. Vá em "Senhas de app" → gere uma para "Aplicativo de e-mail"
-> 4. Use a senha gerada (16 caracteres, sem espaços)
-
-Ou use variáveis de ambiente criando um `.env`:
+Crie um `.env` na raiz:
 ```
 EMAIL_USER=seuemail@gmail.com
-EMAIL_PASS=abcd efgh ijkl mnop
+EMAIL_PASS=senha_de_app_do_gmail
+SENHA_OPERADOR=defina_uma_senha_aqui
+PORT=3000
 ```
 
-### 3. Rodar o servidor
+`EMAIL_PASS` precisa ser uma Senha de App do Google (não a senha normal da conta) — gere em [myaccount.google.com/security](https://myaccount.google.com/security), com verificação em duas etapas ativada.
+
 ```bash
 npm start
-# ou, com recarregamento automático:
-npm run dev
 ```
 
-### 4. Acessar no navegador
-- **Comprar ticket:** http://localhost:3000/
-- **Painel de pedidos:** http://localhost:3000/painel.html
+- Página de compra: `http://localhost:3000/`
+- Painel administrativo: `http://localhost:3000/painel.html`
 
----
-
-## Estrutura de arquivos
-```
-festa-junina/
-├── server.js          # Servidor Express (rotas da API)
-├── db.js              # Banco de dados (leitura/escrita em JSON)
-├── email.js           # Envio de e-mail com Nodemailer
-├── package.json       # Dependências do projeto
-├── data/
-│   └── db.json        # Arquivo que armazena os pedidos
-└── public/
-    ├── index.html     # Página de compra (frontend)
-    └── painel.html    # Painel de pedidos (frontend)
-```
-
-## Endpoints da API
-| Método | Rota | Descrição |
-|--------|------|-----------|
-| POST | /api/pedidos | Criar pedido + enviar e-mail |
-| GET | /api/pedidos | Listar todos os pedidos |
-| PATCH | /api/pedidos/:ticket/item | Marcar item como feito |
-| PATCH | /api/pedidos/:ticket/finalizar | Finalizar pedido inteiro |
+- contato:
+- E-mail: rennerfag@gmail.com
+- Discord: blinbas
